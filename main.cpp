@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
@@ -10,7 +10,7 @@ constexpr int SCR_HEIGHT = 600;
 std::string SCR_TITLE = "OpenGL";
 
 const GLchar* const vertexShaderSource = R"(
-    #version 330 core
+    #version 460 core
     layout (location = 0) in vec3 aPos;
     void main() {
         gl_Position = vec4(aPos, 1.0);
@@ -18,7 +18,7 @@ const GLchar* const vertexShaderSource = R"(
 )";
 
 const GLchar* const fragmentShaderSource = R"(
-    #version 330 core
+    #version 460 core
     out vec4 FragColor;
     void main() {
         FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
@@ -28,8 +28,9 @@ const GLchar* const fragmentShaderSource = R"(
 int main() {
     // glfw window creation.
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, SCR_TITLE.c_str(), nullptr, nullptr);
@@ -42,7 +43,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     // Load all OpenGL function pointers.
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGL(glfwGetProcAddress)) {
         std::cout<< "Failed to initialize GLAD." << std::endl;
         glfwTerminate();
         return -1;
@@ -90,18 +91,28 @@ int main() {
 
     // Vertex data.
     constexpr GLfloat vertices[] = {
-        -0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
          0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
     };
 
-    GLuint VAO, VBO;
+    constexpr GLuint indices[] = {
+        0, 1, 3,
+        1, 2, 3
+    };
+
+    GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -134,7 +145,7 @@ int main() {
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

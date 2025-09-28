@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
         main.cpp
-        glad.c
+        gl.c
 )
 
 find_package(OpenGL REQUIRED)
