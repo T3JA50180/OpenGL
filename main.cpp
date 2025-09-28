@@ -1,6 +1,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 
 void framebufferSizeCallback(GLFWwindow*, GLsizei, GLsizei);
 void processInput(GLFWwindow*);
@@ -20,8 +21,10 @@ const GLchar* const vertexShaderSource = R"(
 const GLchar* const fragmentShaderSource = R"(
     #version 460 core
     out vec4 FragColor;
+    uniform vec4 ourColor;
     void main() {
         FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+        FragColor = ourColor;
     }
 )";
 
@@ -144,6 +147,12 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        // Fade color effect.
+        float greenValue = (std::sin(currTime) / 2.0f + 0.5f);
+        GLuint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
