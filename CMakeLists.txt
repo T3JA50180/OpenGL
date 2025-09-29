@@ -9,8 +9,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
-        main.cpp
-        gl.c
+        src/main.cpp
+        src/gl.c
+        include/shader.h
+        src/shader.cpp
 )
 
 find_package(OpenGL REQUIRED)
