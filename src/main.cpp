@@ -3,8 +3,8 @@
 #include <iostream>
 #include "../include/shader.h"
 
-void framebufferSizeCallback(GLFWwindow*, GLsizei, GLsizei);
-void processInput(GLFWwindow*);
+void framebufferSizeCallback(GLFWwindow* window, GLsizei width, GLsizei height);
+void processInput(GLFWwindow* window, Shader& shader);
 
 constexpr int SCR_WIDTH = 800;
 constexpr int SCR_HEIGHT = 600;
@@ -33,8 +33,6 @@ int main() {
         glfwTerminate();
         return -1;
     }
-
-    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
 
     // Vertex data.
     constexpr GLfloat vertices[] = {
@@ -71,6 +69,9 @@ int main() {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+    // Load shader.
+    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
+
     // FPS counter.
     double prevTime = glfwGetTime();
     int nbFrames = 0;
@@ -87,7 +88,7 @@ int main() {
             prevTime += 1.0;
             nbFrames = 0;
         }
-        processInput(window);
+        processInput(window, shader1);
 
         glClearColor(66 / 255.0f, 135 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -115,9 +116,19 @@ void framebufferSizeCallback(GLFWwindow* window, GLsizei width, GLsizei height) 
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, Shader& shader) {
+    static bool r_key_presssed_last_frame = false;
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        if (r_key_presssed_last_frame == false) {
+            shader.reloadProgram();
+        }
+        r_key_presssed_last_frame = true;
+    } else {
+        r_key_presssed_last_frame = false;
     }
 }
 
