@@ -1,51 +1,40 @@
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
-#include "../include/shader.h"
 
-void framebufferSizeCallback(GLFWwindow* window, GLsizei width, GLsizei height);
+#include "../include/gl.h"
+
+#include "../include/glfw_window.h"
+#include "../include/shader.h"
+#include "../include/stb_image.h"
+#include "../include/fps_counter.h"
+
 void processInput(GLFWwindow* window, Shader& shader);
 
-constexpr int SCR_WIDTH = 800;
-constexpr int SCR_HEIGHT = 600;
-std::string SCR_TITLE = "OpenGL";
+constexpr int kScrWidth = 800;
+constexpr int kScrHeight = 600;
+std::string kScrTitle = "OpenGL";
 
 int main() {
-    // glfw window creation.
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, SCR_TITLE.c_str(), nullptr, nullptr);
+    GLFWwindow* window = initGlfwWindow(kScrWidth, kScrHeight, kScrTitle);
     if (window == nullptr) {
-        std::cerr << "Failed to initialize GLFW window." << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-
-    // Load all OpenGL function pointers.
-    if (!gladLoadGL(glfwGetProcAddress)) {
-        std::cerr<< "Failed to initialize GLAD." << std::endl;
-        glfwTerminate();
         return -1;
     }
 
     // Vertex data.
     constexpr GLfloat vertices[] = {
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f
+        // positions.          // colors.           // texture.
+         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f,
     };
 
     constexpr GLuint indices[] = {
         0, 1, 3,
         1, 2, 3
     };
+
+    // Load shader.
+    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -69,29 +58,47 @@ int main() {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // Load shader.
-    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
+    // Load texture.
+    GLuint texture1, texture2;
+
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nr_channels;
+    stbi_uc* data = stbi_load("../assets/textures/brick_wall.jpg", &width, &height, &nr_channels, 0);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cerr << "Failed to load texture.\n" << std::endl;
+    }
+    stbi_image_free(data);
+
+    shader1.useProgram();
+    std::string tex = "texture1";
+    shader1.setInt(tex, 1);
 
     // FPS counter.
-    double prevTime = glfwGetTime();
-    int nbFrames = 0;
+    FPSCounter fps_counter;
+    glfwSwapInterval(0);
 
     // Render loop.
     while (!glfwWindowShouldClose(window)) {
         // FPS counter.
-        double currTime = glfwGetTime();
-        ++nbFrames;
-
-        if (currTime - prevTime >= 1.0) {
-            std::string SCR_TITLE_FPS = SCR_TITLE + " - FPS: " + std::to_string(nbFrames);
-            glfwSetWindowTitle(window, SCR_TITLE_FPS.c_str());
-            prevTime += 1.0;
-            nbFrames = 0;
-        }
+        fps_counter.update(window, kScrTitle);
         processInput(window, shader1);
 
         glClearColor(66 / 255.0f, 135 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader1.useProgram();
 
@@ -112,24 +119,18 @@ int main() {
     return 0;
 }
 
-void framebufferSizeCallback(GLFWwindow* window, GLsizei width, GLsizei height) {
-    glViewport(0, 0, width, height);
-}
-
 void processInput(GLFWwindow* window, Shader& shader) {
-    static bool r_key_presssed_last_frame = false;
+    static bool r_key_pressed_last_frame = false;
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        if (r_key_presssed_last_frame == false) {
+        if (r_key_pressed_last_frame == false) {
             shader.reloadProgram();
         }
-        r_key_presssed_last_frame = true;
+        r_key_pressed_last_frame = true;
     } else {
-        r_key_presssed_last_frame = false;
+        r_key_pressed_last_frame = false;
     }
 }
-
-

@@ -1,11 +1,12 @@
-#include "../include/shader.h"
 #include <fstream>
 #include <iostream>
+
+#include "../include/shader.h"
 
 Shader::Shader(std::filesystem::path vertex_shader_path, std::filesystem::path fragment_shader_path)
     : vertex_shader_path(vertex_shader_path), fragment_shader_path(fragment_shader_path) {
     GLuint initial_shader_program;
-    if (compileAndLink(initial_shader_program) == true) {
+    if (compileAndLink(initial_shader_program)) {
         shader_program = initial_shader_program;
     } else {
         shader_program = 0;
@@ -31,7 +32,7 @@ void Shader::deleteProgram() {
 
 void Shader::reloadProgram() {
     GLuint reloaded_shader_program;
-    if (compileAndLink(reloaded_shader_program) == true) {
+    if (compileAndLink(reloaded_shader_program)) {
         shader_program = reloaded_shader_program;
         std::cout << "Shaders reloaded successfully.\n";
     } else {
@@ -91,14 +92,14 @@ bool Shader::compileAndLink(GLuint& shader_program) {
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_code, nullptr);
     glCompileShader(vertex_shader);
-    if (compileSucceeded(vertex_shader, "VERTEX") == false) {
+    if (!compileSucceeded(vertex_shader, "VERTEX")) {
         return false;
     }
 
     GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_code, nullptr);
     glCompileShader(fragment_shader);
-    if (compileSucceeded(fragment_shader, "FRAGMENT") == false) {
+    if (!compileSucceeded(fragment_shader, "FRAGMENT")) {
         return false;
     }
 
@@ -106,7 +107,7 @@ bool Shader::compileAndLink(GLuint& shader_program) {
     glAttachShader(shader_program, vertex_shader);
     glAttachShader(shader_program, fragment_shader);
     glLinkProgram(shader_program);
-    if (compileSucceeded(shader_program, "PROGRAM") == false) {
+    if (!compileSucceeded(shader_program, "PROGRAM")) {
         return false;
     }
 

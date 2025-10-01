@@ -11,8 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCES
         src/main.cpp
         src/gl.c
-        include/shader.h
         src/shader.cpp
+        src/stb_image.cpp
+        include/fps_counter.h
+        src/fps_counter.cpp
+        include/glfw_window.h
+        src/glfw_window.cpp
+        include/gl.h
 )
 
 find_package(OpenGL REQUIRED)
