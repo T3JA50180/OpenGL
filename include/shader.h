@@ -19,9 +19,9 @@ public:
     void deleteProgram();
     void reloadProgram();
 
-    void setBool(std::string &name, bool value);
-    void setInt(std::string &name, int value);
-    void setFloat(std::string &name, float value);
+    void setBool(std::string_view name, bool value);
+    void setInt(std::string_view name, int value);
+    void setFloat(std::string_view name, float value);
 
 private:
     bool compileAndLink(GLuint& shader_program);

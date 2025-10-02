@@ -22,10 +22,10 @@ int main() {
     // Vertex data.
     constexpr GLfloat vertices[] = {
         // positions.          // colors.           // texture.
-         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f,
+         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    2.0f, 2.0f,
+         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    2.0f, -1.0f,
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    -1.0f, -1.0f,
+        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    -1.0f, 2.0f,
     };
 
     constexpr GLuint indices[] = {
@@ -41,64 +41,94 @@ int main() {
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
+    // Start recording state in VAO.
     glBindVertexArray(VAO);
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), nullptr);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(GLfloat)));
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
+
+    // Do not unbind EBO.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // Stop setting state in VAO.
     glBindVertexArray(0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    // Load texture.
-    GLuint texture1, texture2;
-
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+    // Load texture from file.
     int width, height, nr_channels;
-    stbi_uc* data = stbi_load("../assets/textures/brick_wall.jpg", &width, &height, &nr_channels, 0);
-    if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
+    stbi_uc* texture_data = stbi_load("../assets/textures/brick_wall.jpg", &width, &height, &nr_channels, 0);
+    if (!texture_data) {
         std::cerr << "Failed to load texture.\n" << std::endl;
     }
-    stbi_image_free(data);
+
+    GLenum internal_format = nr_channels == 4 ? GL_RGBA8 : GL_RGB8;
+    GLenum format = nr_channels == 4 ? GL_RGBA : GL_RGB;
+
+    GLuint texture;
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+
+    glTextureStorage2D(texture, 1, internal_format, width, height);
+    glTextureSubImage2D(texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, texture_data);
+    glGenerateTextureMipmap(texture);
+
+    stbi_image_free(texture_data);
+
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    //////////////////////////////////////
+    // Load texture from file.
+    texture_data = stbi_load("../assets/textures/imagetex.jpg", &width, &height, &nr_channels, 0);
+    if (!texture_data) {
+        std::cerr << "Failed to load texture.\n" << std::endl;
+    }
+
+    internal_format = nr_channels == 4 ? GL_RGBA8 : GL_RGB8;
+    format = nr_channels == 4 ? GL_RGBA : GL_RGB;
+
+    GLuint texture0;
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture0);
+
+    glTextureStorage2D(texture0, 1, internal_format, width, height);
+    glTextureSubImage2D(texture0, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, texture_data);
+    glGenerateTextureMipmap(texture0);
+
+    stbi_image_free(texture_data);
+
+    glTextureParameteri(texture0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture0, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(texture0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     shader1.useProgram();
-    std::string tex = "texture1";
-    shader1.setInt(tex, 1);
+    // Do this after the above line only.
+    glBindTextureUnit(1, texture);
+    shader1.setInt("ourTexture", 1);
+    glBindTextureUnit(0, texture0);
+    shader1.setInt("ourTexture0", 0);
 
-    // FPS counter.
     FPSCounter fps_counter;
-    glfwSwapInterval(0);
+    // glfwSwapInterval(0);
 
-    // Render loop.
     while (!glfwWindowShouldClose(window)) {
-        // FPS counter.
         fps_counter.update(window, kScrTitle);
         processInput(window, shader1);
 
         glClearColor(66 / 255.0f, 135 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader1.useProgram();
 

@@ -8,7 +8,7 @@
 class FPSCounter {
 public:
     FPSCounter();
-    void update(GLFWwindow* window, std::string& kScrTitle);
+    void update(GLFWwindow* window, std::string& scr_title);
 
 private:
     double prev_time;

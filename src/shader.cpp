@@ -40,18 +40,18 @@ void Shader::reloadProgram() {
     }
 }
 
-void Shader::setBool(std::string &name, bool value) {
-    GLint location = glGetUniformLocation(shader_program, name.c_str());
+void Shader::setBool(std::string_view name, bool value) {
+    GLint location = glGetUniformLocation(shader_program, name.data());
     glUniform1i(location, (GLint)value);
 }
 
-void Shader::setInt(std::string &name, int value) {
-    GLint location = glGetUniformLocation(shader_program, name.c_str());
+void Shader::setInt(std::string_view name, int value) {
+    GLint location = glGetUniformLocation(shader_program, name.data());
     glUniform1i(location, (GLint)value);
 }
 
-void Shader::setFloat(std::string &name, float value) {
-    GLint location = glGetUniformLocation(shader_program, name.c_str());
+void Shader::setFloat(std::string_view name, float value) {
+    GLint location = glGetUniformLocation(shader_program, name.data());
     glUniform1f(location, (GLfloat)value);
 }
 

@@ -18,6 +18,7 @@ set(SOURCES
         include/glfw_window.h
         src/glfw_window.cpp
         include/gl.h
+        include/texture.h
 )
 
 find_package(OpenGL REQUIRED)
