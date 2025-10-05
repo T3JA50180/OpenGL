@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <utility>
 
 #include "../include/stb_image.h"
 
@@ -16,7 +15,13 @@ Texture::Texture(std::filesystem::path texture_data_path)
 }
 
 Texture::~Texture() {
-    glDeleteTextures(1, &texture);
+    deleteTexture();
+}
+
+void Texture::deleteTexture() {
+    if (texture != 0) {
+        glDeleteTextures(1, &texture);
+    }
 }
 
 bool Texture::loadTexture() {

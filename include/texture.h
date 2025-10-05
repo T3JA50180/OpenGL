@@ -12,6 +12,8 @@ public:
 
     explicit Texture(std::filesystem::path texture_data_path);
     ~Texture();
+
+    void deleteTexture();
 private:
     bool loadTexture();
     void setTextureParameters();

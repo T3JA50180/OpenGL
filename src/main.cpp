@@ -34,9 +34,6 @@ int main() {
         1, 2, 3
     };
 
-    // Load shader.
-    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
-
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -62,8 +59,11 @@ int main() {
 
     // Do not unbind EBO.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // Stop setting state in VAO.
+    // Stop recording state in VAO.
     glBindVertexArray(0);
+
+    // Load shader.
+    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
 
     // Load texture from file.
     Texture texture0("../assets/textures/imagetex.jpg");
@@ -77,7 +77,7 @@ int main() {
     shader1.setInt("ourTexture", 1);
 
     FPSCounter fps_counter;
-    // glfwSwapInterval(0);
+    glfwSwapInterval(0);
 
     while (!glfwWindowShouldClose(window)) {
         fps_counter.update(window, kScrTitle);
@@ -99,8 +99,6 @@ int main() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    // glDeleteTextures(1, &texture0.texture);
-    shader1.deleteProgram();
 
     glfwTerminate();
     return 0;
