@@ -13,12 +13,9 @@ set(SOURCES
         src/gl.c
         src/shader.cpp
         src/stb_image.cpp
-        include/fps_counter.h
         src/fps_counter.cpp
-        include/glfw_window.h
         src/glfw_window.cpp
-        include/gl.h
-        include/texture.h
+        src/texture.cpp
 )
 
 find_package(OpenGL REQUIRED)

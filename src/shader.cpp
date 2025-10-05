@@ -5,10 +5,7 @@
 
 Shader::Shader(std::filesystem::path vertex_shader_path, std::filesystem::path fragment_shader_path)
     : vertex_shader_path(vertex_shader_path), fragment_shader_path(fragment_shader_path) {
-    GLuint initial_shader_program;
-    if (compileAndLink(initial_shader_program)) {
-        shader_program = initial_shader_program;
-    } else {
+    if (!compileAndLink(shader_program)) {
         shader_program = 0;
     }
 }

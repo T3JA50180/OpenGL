@@ -2,10 +2,11 @@
 
 #include "../include/gl.h"
 
+#include "../include/fps_counter.h"
 #include "../include/glfw_window.h"
 #include "../include/shader.h"
 #include "../include/stb_image.h"
-#include "../include/fps_counter.h"
+#include "../include/texture.h"
 
 void processInput(GLFWwindow* window, Shader& shader);
 
@@ -65,60 +66,15 @@ int main() {
     glBindVertexArray(0);
 
     // Load texture from file.
-    int width, height, nr_channels;
-    stbi_uc* texture_data = stbi_load("../assets/textures/brick_wall.jpg", &width, &height, &nr_channels, 0);
-    if (!texture_data) {
-        std::cerr << "Failed to load texture.\n" << std::endl;
-    }
-
-    GLenum internal_format = nr_channels == 4 ? GL_RGBA8 : GL_RGB8;
-    GLenum format = nr_channels == 4 ? GL_RGBA : GL_RGB;
-
-    GLuint texture;
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-
-    glTextureStorage2D(texture, 1, internal_format, width, height);
-    glTextureSubImage2D(texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, texture_data);
-    glGenerateTextureMipmap(texture);
-
-    stbi_image_free(texture_data);
-
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-    //////////////////////////////////////
-    // Load texture from file.
-    texture_data = stbi_load("../assets/textures/imagetex.jpg", &width, &height, &nr_channels, 0);
-    if (!texture_data) {
-        std::cerr << "Failed to load texture.\n" << std::endl;
-    }
-
-    internal_format = nr_channels == 4 ? GL_RGBA8 : GL_RGB8;
-    format = nr_channels == 4 ? GL_RGBA : GL_RGB;
-
-    GLuint texture0;
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture0);
-
-    glTextureStorage2D(texture0, 1, internal_format, width, height);
-    glTextureSubImage2D(texture0, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, texture_data);
-    glGenerateTextureMipmap(texture0);
-
-    stbi_image_free(texture_data);
-
-    glTextureParameteri(texture0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture0, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(texture0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(texture0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    Texture texture0("../assets/textures/imagetex.jpg");
+    Texture texture1("../assets/textures/brick_wall.jpg");
 
     shader1.useProgram();
     // Do this after the above line only.
-    glBindTextureUnit(1, texture);
-    shader1.setInt("ourTexture", 1);
-    glBindTextureUnit(0, texture0);
+    glBindTextureUnit(0, texture0.texture);
     shader1.setInt("ourTexture0", 0);
+    glBindTextureUnit(1, texture1.texture);
+    shader1.setInt("ourTexture", 1);
 
     FPSCounter fps_counter;
     // glfwSwapInterval(0);
@@ -143,6 +99,7 @@ int main() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+    // glDeleteTextures(1, &texture0.texture);
     shader1.deleteProgram();
 
     glfwTerminate();
