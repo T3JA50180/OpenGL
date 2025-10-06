@@ -4,8 +4,10 @@
 
 #include "../include/fps_counter.h"
 #include "../include/glfw_window.h"
+#include "../include/glm/glm.hpp"
+#include "../include/glm/gtc/matrix_transform.hpp"
+#include "../include/glm/gtc/type_ptr.hpp"
 #include "../include/shader.h"
-#include "../include/stb_image.h"
 #include "../include/texture.h"
 
 void processInput(GLFWwindow* window, Shader& shader);
@@ -23,10 +25,10 @@ int main() {
     // Vertex data.
     constexpr GLfloat vertices[] = {
         // positions.          // colors.           // texture.
-         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    2.0f, 2.0f,
-         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    2.0f, -1.0f,
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    -1.0f, -1.0f,
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    -1.0f, 2.0f,
+         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f,
     };
 
     constexpr GLuint indices[] = {
@@ -69,11 +71,11 @@ int main() {
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, 8 * sizeof(GLfloat));
 
     // Load shader.
-    Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
+    Shader shader1 = Shader("../shaders/shader.vert", "../shaders/shader.frag");
 
     // Load textures from file.
-    Texture texture0("../assets/textures/imagetex.jpg");
-    Texture texture1("../assets/textures/brick_wall.jpg");
+    Texture texture0 = Texture("../assets/textures/brick_wall.jpg");
+    Texture texture1 = Texture("../assets/textures/smiley_face.jpg");
 
     shader1.useProgram();
     // Do this after the above line only.
@@ -92,10 +94,24 @@ int main() {
         glClearColor(66 / 255.0f, 135 / 255.0f, 245 / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader1.useProgram();
-
         glBindVertexArray(vao);
+        GLint transform_location = glGetUniformLocation(shader1.shader_program, "transform");
+        float time = glfwGetTime();
+        // Transform.
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(-cos(time), -cos(time), -cos(time)));
+        transform = glm::scale(transform, glm::vec3(sin(time), sin(time), sin(time)));
+        transform = glm::rotate(transform, time, glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(transform));
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(sin(time), sin(time), sin(time)));
+        transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
+        transform = glm::rotate(transform, time, glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(transform));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);

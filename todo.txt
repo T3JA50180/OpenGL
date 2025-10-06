@@ -1,2 +1,3 @@
 + quaternions
 + compute culling
++ gimbal lock

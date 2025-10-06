@@ -26,6 +26,7 @@ void Texture::deleteTexture() {
 
 bool Texture::loadTexture() {
     int width, height, nr_channels;
+    stbi_set_flip_vertically_on_load(true);
     stbi_uc* texture_data = stbi_load(texture_data_path.c_str(), &width, &height, &nr_channels, 0);
     if (!texture_data) {
         std::cout << "Failed to load texture from " << texture_data_path << std::endl;
@@ -45,7 +46,7 @@ bool Texture::loadTexture() {
 
 void Texture::setTextureParameters() {
     glGenerateTextureMipmap(texture);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
