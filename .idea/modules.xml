@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/OpenGLNew.iml" filepath="$PROJECT_DIR$/.idea/OpenGLNew.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/OpenGL.iml" filepath="$PROJECT_DIR$/.idea/OpenGL.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/OpenGL2.iml" filepath="$PROJECT_DIR$/.idea/OpenGL2.iml" />
     </modules>
   </component>
 </project>

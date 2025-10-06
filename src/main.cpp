@@ -34,38 +34,44 @@ int main() {
         1, 2, 3
     };
 
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    GLuint vao, vbo, ebo;
 
-    // Start recording state in VAO.
-    glBindVertexArray(VAO);
+    glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glCreateBuffers(1, &ebo);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // Upload vertex data.
+    glNamedBufferData(vbo, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // Upload index data.
+    glNamedBufferData(ebo, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), nullptr);
-    glEnableVertexAttribArray(0);
+    // Associate the EBO with the VAO.
+    glVertexArrayElementBuffer(vao, ebo);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
+    // Define vertex attributes directly on the VAO.
+    // Position.
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
+    // Color.
+    glEnableVertexArrayAttrib(vao, 1);
+    glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
+    glVertexArrayAttribBinding(vao, 1, 0);
 
-    // Do not unbind EBO.
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // Stop recording state in VAO.
-    glBindVertexArray(0);
+    // Texture coordinates.
+    glEnableVertexArrayAttrib(vao, 2);
+    glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat));
+    glVertexArrayAttribBinding(vao, 2, 0);
+
+    // Bind the VBO to binding index 0 of the VAO.
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, 8 * sizeof(GLfloat));
 
     // Load shader.
     Shader shader1("../shaders/shader.vert", "../shaders/shader.frag");
 
-    // Load texture from file.
+    // Load textures from file.
     Texture texture0("../assets/textures/imagetex.jpg");
     Texture texture1("../assets/textures/brick_wall.jpg");
 
@@ -88,18 +94,18 @@ int main() {
 
         shader1.useProgram();
 
-        glBindVertexArray(VAO);
+        glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     // Clean up.
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
     glfwTerminate();
     return 0;
 }
