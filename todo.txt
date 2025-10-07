@@ -3,3 +3,5 @@
 + gimbal lock
 + frustum cullling
 + make cube calculations at compile time
++ add functions for setting matrix in shader
++ in shader.frag out vec4 frag_color; can be any name
