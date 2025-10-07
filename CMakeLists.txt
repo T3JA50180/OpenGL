@@ -16,6 +16,7 @@ set(SOURCES
         src/fps_counter.cpp
         src/glfw_window.cpp
         src/texture.cpp
+        src/mesh/cube.cpp
 )
 
 find_package(OpenGL REQUIRED)

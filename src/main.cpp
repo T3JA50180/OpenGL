@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "../include/gl.h"
 
@@ -7,6 +8,7 @@
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"
+#include "../include/mesh/cube.h"
 #include "../include/shader.h"
 #include "../include/texture.h"
 
@@ -22,19 +24,28 @@ int main() {
         return -1;
     }
 
-    // Vertex data.
-    constexpr GLfloat vertices[] = {
-        // positions.          // colors.           // texture.
-         0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f,
-    };
+    std::vector<GLfloat> vertex_buffer_data;
+    std::vector<GLuint> indices_data;
 
-    constexpr GLuint indices[] = {
-        0, 1, 3,
-        1, 2, 3
-    };
+    // Procedural cube creation.
+    Cube cube_1 = Cube();
+    std::vector<Vertex> cube1_vertices = cube_1.getVertices();
+    std::vector<GLuint> cube1_indices = cube_1.getIndices();
+
+    for (Vertex& v : cube1_vertices) {
+        vertex_buffer_data.push_back(v.position.x);
+        vertex_buffer_data.push_back(v.position.y);
+        vertex_buffer_data.push_back(v.position.z);
+        vertex_buffer_data.push_back(v.uv.x);
+        vertex_buffer_data.push_back(v.uv.y);
+    }
+
+    for (GLuint i : cube1_indices) {
+        indices_data.push_back(i);
+    }
+
+    // vertex_buffer_data.resize(20);
+    // indices_data.resize(6);
 
     GLuint vao, vbo, ebo;
 
@@ -43,10 +54,9 @@ int main() {
     glCreateBuffers(1, &ebo);
 
     // Upload vertex data.
-    glNamedBufferData(vbo, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+    glNamedBufferData(vbo, vertex_buffer_data.size() * sizeof(GLfloat), vertex_buffer_data.data(), GL_STATIC_DRAW);
     // Upload index data.
-    glNamedBufferData(ebo, sizeof(indices), indices, GL_STATIC_DRAW);
+    glNamedBufferData(ebo, indices_data.size() * sizeof(GLint), indices_data.data(), GL_STATIC_DRAW);
 
     // Associate the EBO with the VAO.
     glVertexArrayElementBuffer(vao, ebo);
@@ -57,60 +67,59 @@ int main() {
     glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(vao, 0, 0);
 
-    // Color.
+    // Texture coordinates.
     glEnableVertexArrayAttrib(vao, 1);
-    glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
+    glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
     glVertexArrayAttribBinding(vao, 1, 0);
 
-    // Texture coordinates.
-    glEnableVertexArrayAttrib(vao, 2);
-    glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat));
-    glVertexArrayAttribBinding(vao, 2, 0);
-
     // Bind the VBO to binding index 0 of the VAO.
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, 8 * sizeof(GLfloat));
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, 5 * sizeof(GLfloat));
 
     // Load shader.
-    Shader shader1 = Shader("../shaders/shader.vert", "../shaders/shader.frag");
+    Shader shader_1 = Shader("../shaders/shader.vert", "../shaders/shader.frag");
 
     // Load textures from file.
-    Texture texture0 = Texture("../assets/textures/brick_wall.jpg");
-    Texture texture1 = Texture("../assets/textures/smiley_face.jpg");
+    Texture texture_0 = Texture("../assets/textures/brick_wall.jpg");
+    Texture texture_1 = Texture("../assets/textures/smiley_face.jpg");
 
-    shader1.useProgram();
+    shader_1.useProgram();
     // Do this after the above line only.
-    glBindTextureUnit(0, texture0.texture);
-    shader1.setInt("ourTexture0", 0);
-    glBindTextureUnit(1, texture1.texture);
-    shader1.setInt("ourTexture", 1);
+    glBindTextureUnit(0, texture_0.texture);
+    shader_1.setInt("texture_0", 0);
+    glBindTextureUnit(1, texture_1.texture);
+    shader_1.setInt("texture_1", 1);
 
     FPSCounter fps_counter;
     glfwSwapInterval(0);
 
     while (!glfwWindowShouldClose(window)) {
         fps_counter.update(window, kScrTitle);
-        processInput(window, shader1);
+        processInput(window, shader_1);
 
         glClearColor(66 / 255.0f, 135 / 255.0f, 245 / 255.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindVertexArray(vao);
-        GLint transform_location = glGetUniformLocation(shader1.shader_program, "transform");
-        float time = glfwGetTime();
-        // Transform.
-        glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(-cos(time), -cos(time), -cos(time)));
-        transform = glm::scale(transform, glm::vec3(sin(time), sin(time), sin(time)));
-        transform = glm::rotate(transform, time, glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(transform));
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-        transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(sin(time), sin(time), sin(time)));
-        transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
-        transform = glm::rotate(transform, time, glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(transform));
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        // Get location of uniform variables.
+        GLint model_location = glGetUniformLocation(shader_1.shader_program, "model");
+        GLint view_location = glGetUniformLocation(shader_1.shader_program, "view");
+        GLint projection_location = glGetUniformLocation(shader_1.shader_program, "projection");
+
+        // Transform.
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection;
+        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
         glBindVertexArray(0);
 

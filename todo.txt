@@ -1,3 +1,5 @@
 + quaternions
 + compute culling
 + gimbal lock
++ frustum cullling
++ make cube calculations at compile time
