@@ -105,6 +105,12 @@ int main() {
         {-1.3f,  1.0f, -1.5f}
     };
 
+
+    glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 8.0f);
+    glm::vec3 camera_target = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
     while (!glfwWindowShouldClose(window)) {
         fps_counter.update(window, kScrTitle);
         processInput(window, shader_1);
@@ -122,8 +128,15 @@ int main() {
         // Transform.
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+
+        float r = 10;
+        camera_position.x = r * cos(glfwGetTime());
+        camera_position.z = r * sin(glfwGetTime());
+        view = glm::lookAt(camera_position, camera_target, up);
+
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+
 
         glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
@@ -165,4 +178,17 @@ void processInput(GLFWwindow* window, Shader& shader) {
     } else {
         r_key_pressed_last_frame = false;
     }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {}
 }
